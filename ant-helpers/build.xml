@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." name="Ant helpers" xmlns:fl="antlib:it.haefelinger.flaka" xmlns:gg="antlib:net.ggtools.grand">
+ <!-- super-global properties -->
+        <dirname property="ant.dir.deployment" file="${ant.file.Deployment}"/>
+        <!-- /super-global properties -->
+	<macrodef name="coffee" description="Compile">
+                <attribute name="inputDir" description="Coffee input directory"/>
+                <attribute name="outputDir" description="Compiled(output) JS directory"/>
+                <attribute name="options" default="--lint "/>
+                <sequential>
+                        <echo>[COFFEE] coffee --compile @{options} --output '@{outputDir}' '@{inputDir}'</echo>
+                        <exec executable="${ant.dir.deployment}/ant-helpers/modules/coffee-script/bin/coffee" logError="true">
+                                <arg line="--compile @{options} --output '@{outputDir}' '@{inputDir}'"/>
+                        </exec>
+                </sequential>
+        </macrodef>
+
+	 <!--
+        Minifikuje JS pomoci Google Closure Compileru, vypočítává závislosti
+        @see http://code.google.com/intl/cs-CZ/closure/compiler/
+        @author Michael Czolko <michael@czolko.cz>
+        -->
+        <macrodef name="googleclosure" description="Depenendencies for Google Closure Compiler and compile JavaScript">
+                <attribute name="namespace" />
+                <attribute name="inputDir" />
+                <attribute name="outputFile" />
+                <sequential>
+                        <exec dir="${ant.dir.deployment}/ant-helpers/modules/google-closure" executable="python">
+                                <arg line="library/closure/bin/build/closurebuilder.py --namespace=@{namespace} --root=library/ --root=${ant.dir.deployment}/../@{inputDir} --output_mode=compiled --compiler_jar=compiler.jar -o script --compiler_flags='--compilation_level=ADVANCED_OPTIMIZATIONS' --output_file=@{outputFile}" />
+                        </exec>
+                </sequential>
+        </macrodef>
+
+	<macrodef name="soy" description="SOY files compile">
+                <attribute name="inputDir" />
+                <attribute name="outputFile" />
+                <sequential>
+                        <fileset dir="@{inputDir}" id="soy.src.files">
+                                <include name="**/*.soy"/>
+                        </fileset>
+                        <pathconvert pathsep=" " property="soyfiles" refid="soy.src.files"/>
+                        <echo>SoyToJsSrcCompiler.jar --shouldProvideRequireSoyNamespaces --shouldGenerateJsdoc --outputPathFormat '@{outputFile}' ${soyfiles}</echo>
+                        <java jar="${ant.dir.deployment}/ant-helpers/modules/closure-templates/SoyToJsSrcCompiler.jar" fork="true">
+                                <arg line="--shouldProvideRequireSoyNamespaces --shouldGenerateJsdoc --outputPathFormat '@{outputFile}' ${soyfiles}" />
+                        </java>
+                </sequential>
+        </macrodef>
+
+</project>

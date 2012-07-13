@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="CGASkeleton" default="build" basedir=".">
+	<description>
+		Skeleton for building pages using CoffeeScript, Google Closures using ANT
+	</description>
+	<property name="src" location="src/" />
+	<property name="build" location="build/" />
+	<property name="dist" location="dist/" />
+	<property name="namespace" value="skel" />
+
+	<target name="init">
+		<echo>Inititalization of directory structure for build</echo>
+		<tstamp/>
+		<mkdir dir="${build}" />
+		<mkdir dir="${dist}" />
+		<mkdir dir="${src}/js/coffee" />
+		<mkdir dir="${src}/js/soy" />
+	</target>
+
+	<target name="compile" depends="init" description="compile the source">
+		<echo>Compilation in progress</echo>
+		<antcall target="coffee.compile" />
+		<antcall target="closure.compile" />
+	</target>
+
+	<target name="dist" depends="compile" description="generate the distribution">
+		<echo>Generating distribution</echo>
+		<mkdir dir="${dist}/lib" />
+	</target>
+
+	<target name="build" depends="compile" description="build the distribution">
+		<echo>Building distribution</echo>
+	</target>
+
+	<target name="clean" description="clean up">
+		<echo>Cleaning up</echo>
+		<delete dir="${build}" />
+		<delete dir="${dist}" />
+	</target>
+	
+	<!--    CoffeeScript kompilace -->
+        <target name="coffee.compile">
+                <coffee inputDir="${src}/js/coffee" outputDir="${build}/js/coffee" />
+        </target>
+
+        <!--    Soy kompilace -->
+        <target name="soy.compile">
+                <soy inputDir="${src}/js/soy" outputFile="${build}/js/soy/compiled.js" />
+        </target>
+
+        <!--    Google Closure kompilace -->
+        <target name="closure.compile" depends="coffee.compile, soy.compile">
+                <googleclosure namespace="${namespace}" inputDir="${build}/src-js/" outputFile="${dist}/js/${namespace}.js" />
+        </target>
+
+
+	 <import file="ant-helpers/build.xml" />
+</project>
